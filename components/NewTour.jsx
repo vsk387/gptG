@@ -1,21 +1,18 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import React from "react";
-import TourInfo from "./TourInfo";
-import toast from "react-hot-toast";
 import {
-  getExistingTour,
-  generateTourResponse,
   createNewTour,
+  generateTourResponse,
+  getExistingTour,
 } from "@/utils/action";
 
-/*So, the const formData line essentially collects all the form data from the form element that triggered the submission, 
-and this data is then used to create an object (destination) that contains key-value pairs 
-representing the form fields and their values. 
-This can be useful for further processing or sending the form data to a server.
-Object.fromEntries converts the formdata into basic js object
-*/
+import toast from "react-hot-toast";
+import TourInfo from "@/components/TourInfo";
+
+//data returned in mutation is true or false. if T, means that city is found by chatGPT and therefore it will invoke
+//TourInfo.jsx and provide info about that city
+//or else, it will say no matching city found mate
 const NewTour = () => {
   const {
     mutate,
@@ -23,19 +20,20 @@ const NewTour = () => {
     data: tour,
   } = useMutation({
     mutationFn: async (destination) => {
-      const newTour = await generateTourRespone(destination);
+      const newTour = await generateTourResponse(destination);
       if (newTour) {
         return newTour;
       }
-      toast.error("No matching city found :(");
+      toast.error("No matching city found mate");
       return null;
     },
   });
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const formData = new FormData(e.currentTarget); //creates formData object
-    const destination = Object.fromEntries(formData.entries()); //converts formData obj into JS obj named destination using Object.fromEntries method
+    const formData = new FormData(e.currentTarget);
+    const destination = Object.fromEntries(formData.entries());
     mutate(destination);
   };
 
@@ -45,8 +43,8 @@ const NewTour = () => {
 
   return (
     <>
-      <form onSubmit={handleSubmit} className="max-w-2l">
-        <h2 className="Select your destination"></h2>
+      <form onSubmit={handleSubmit} className="max-w-2xl">
+        <h2 className=" mb-4">Select your dream destination</h2>
         <div className="join w-full">
           <input
             type="text"
@@ -54,22 +52,21 @@ const NewTour = () => {
             placeholder="city"
             name="city"
             required
-          ></input>
+          />
           <input
             type="text"
-            className="input input-bordered join-item w full"
+            className="input input-bordered join-item w-full"
             placeholder="country"
             name="country"
-            requried
-          ></input>
+            required
+          />
+          <button className="btn btn-primary join-item" type="submit">
+            generate tour
+          </button>
         </div>
-        <button className="btn btn-primary join-item" type="submit">
-          Generate tour
-        </button>
       </form>
       <div className="mt-16">{tour ? <TourInfo tour={tour} /> : null}</div>
     </>
   );
 };
-
 export default NewTour;
