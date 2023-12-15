@@ -14,14 +14,21 @@ import TourInfo from "@/components/TourInfo";
 //TourInfo.jsx and provide info about that city
 //or else, it will say no matching city found mate
 const NewTour = () => {
+  const queryClient = useQueryClient();
   const {
     mutate,
     isPending,
     data: tour,
   } = useMutation({
     mutationFn: async (destination) => {
-      const newTour = await generateTourResponse(destination);
+      const exisitingTour = await getExistingTour(destination); //check if city already exists in db
+      if (exisitingTour) return exisitingTour; //if it does, then returns something
+
+      const newTour = await generateTourResponse(destination); //passed the test that it  doesnt exist in db therefore it moves on to create new tour and post in the db
       if (newTour) {
+        //check if city exists (openai can find city in that country)
+        await createNewTour(newTour); //pushes new city in db
+        queryClient.invalidateQueries({ queryKey: ["tours"] });
         return newTour;
       }
       toast.error("No matching city found mate");
